@@ -11,6 +11,10 @@ require 'csv'
 Movie.delete_all;
 ProductionCompany.delete_all;
 
+
+#Reset auto-increment
+ActiveRecord:Base.connection.execute("DELETE FROM sqlite_sequence WHERE name='production_companies';");
+
 #open top_movies.csv
 filename = Rails.root.join("db/top_movies.csv");
 
@@ -25,6 +29,16 @@ movies.each do |m|
 
     if production_company && production_company.valid?
         # create the movie
+        movie = production_company.movies.create(
+            title: m['original_title'],
+            year: m['year'],
+            duration: m['duration'],
+            description: m['description'],
+            average_vote: m['avg_vote']
+        )
+        #Safe navigation operator "&"
+        puts "Invalid move #{m["original_title"]}" unless movie&.valid?;
+
     else
         puts "Invalid production company #{m["production_company"]} for movie #{m['original_title']}"
     end
@@ -32,3 +46,4 @@ movies.each do |m|
 end
 
 puts "Created #{ProductionCompany.count} Production Companies.";
+puts "Created #{Movie.count} Movies";
